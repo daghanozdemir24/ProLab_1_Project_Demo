@@ -157,7 +157,61 @@ void insert_sorted_sjf(QueueNode **head, Task *task) {
 }
 
 void insert_sorted_priority(QueueNode **head, Task *task) {
-    // TODO: 1. Kişi dolduracak (Öncelik -> Erken Geliş -> Küçük ID)
+    
+    QueueNode* new_node = (QueueNode*)malloc(sizeof(QueueNode));
+    new_node->task = task;
+    new_node->next = NULL;
+    
+    if(*head==NULL){
+    	*head=new_node;
+    	return;
+	}
+	
+	int control = 0;
+	int control2 = 0;
+	
+	if(new_node->task->priority < (*head)->task->priority)
+	control = 1;
+	if(new_node->task->priority == (*head)->task->priority
+	&& new_node->task->arrival_time < (*head)->task->arrival_time)
+	control = 1;
+	if(new_node->task->priority == (*head)->task->priority
+	&& new_node->task->arrival_time == (*head)->task->arrival_time
+	&& new_node->task->id < (*head)->task->id)
+	control = 1;
+	
+	if(control == 1){
+		new_node->next = *head;
+		*head = new_node;
+		return;
+	}
+	
+	QueueNode* temp = *head;
+	while(temp->next!=NULL){
+		control2 = 0;
+		if(new_node->task->priority < temp->next->task->priority)
+		control2 = 1;
+		if(new_node->task->priority == temp->next->task->priority
+		&& new_node->task->arrival_time < temp->next->task->arrival_time)
+		control2 = 1;
+		if(new_node->task->priority == temp->next->task->priority
+		&& new_node->task->arrival_time == temp->next->task->arrival_time
+		&& new_node->task->id < temp->next->task->id)
+		control2 = 1;
+		
+		if(control2==1){
+			new_node->next = temp->next;
+			temp->next = new_node;
+			return;
+		}
+		
+		
+		
+		temp = temp->next;
+	}
+	temp->next = new_node;
+	
+	
 }
 
 Task* dequeue(QueueNode **head) {
