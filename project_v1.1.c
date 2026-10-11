@@ -59,17 +59,95 @@ int current_time = 0;
 int selected_algorithm = 0; // 1: SJF, 2: Priority, 3: RR, 4: Custom
 int rr_quantum = 0;
 
-// =========================================================
-// 1. KİŞİNİN DOLDURACAĞI METOTLAR (File I/O & Queue)
-// =========================================================
 
 int load_tasks(const char *filename) {
-    // TODO: 1. Kişi dolduracak
-    // - Dosyayı aç, satır satır oku.
-    // - # ve boş satırları atla.
-    // - Hatalı ve yinelenen ID'leri reddedip ekrana yaz.
-    // - Geçerli verileri master_tasks dizisine yaz, total_task_count döndür.
-    return 0;
+    
+    FILE *fp = fopen(filename, "r");
+    if (fp == NULL) {
+        printf("Dosya acilamadi.\n");
+        return 0;
+    }
+
+    char line[512];
+    int line_number = 0;
+    total_task_count = 0;
+
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        line_number++;
+
+        
+        char *ptr = line;
+        while (*ptr == ' ' || *ptr == '\t') ptr++;
+
+        
+        if (*ptr == '\0' || *ptr == '\r' || *ptr == '\n' || *ptr == '#') {
+            continue;
+        }
+
+        int id, arrival, duration, priority;
+        char type[40], location[20], extra[50];
+
+        
+        int length = sscanf(ptr, "%d %d %d %d %39s %19s %49s", 
+                            &id, &arrival, &duration, &priority, type, location, extra);
+
+        if (length < 6) {
+            printf("Satir %d eksik alan bulundu. \n", line_number);
+            continue;
+        }
+        if (length > 6) {
+            printf("Satir %d fazla alan bulundu. \n", line_number);
+            continue;
+        }
+
+        
+        if (id <= 0 || arrival < 0 || duration <= 0 || priority < 1 || priority > 5) {
+            printf("Satir %d gecersiz veri araligi (ID:%d) \n", line_number, id);
+            continue;
+        }
+
+        
+        int id_control = 0;
+        int i;
+        for (i = 0; i < total_task_count; i++) {
+            if (master_tasks[i].id == id) {
+                id_control = 1;
+                break;
+            }
+        }
+        if (id_control) {
+            printf("Satir %d yinelenen ID (%d). \n", line_number, id);
+            continue;
+        }
+
+        
+        if (total_task_count >= MAX_TASKS) {
+            printf("Maksimum gorev kapasitesi (%d) asildi.\n", MAX_TASKS);
+            break;
+        }
+
+        
+        Task *t = &master_tasks[total_task_count];
+        t->id = id;
+        t->arrival_time = arrival;
+        t->duration = duration;
+        t->remaining_time = duration;
+        t->priority = priority;
+        strncpy(t->type, type, sizeof(t->type) - 1);
+        t->type[sizeof(t->type) - 1] = '\0';
+        strncpy(t->location, location, sizeof(t->location) - 1);
+        t->location[sizeof(t->location) - 1] = '\0';
+
+        t->status = HENUZ_GELMEDI;
+        t->first_start_time = -1;
+        t->finish_time = -1;
+        t->assigned_tech_id = 0;
+
+        total_task_count++;
+    }
+
+    fclose(fp);
+    return total_task_count;	
 }
 
 void enqueue(QueueNode **head, Task *task) {
