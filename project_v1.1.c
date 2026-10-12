@@ -185,59 +185,59 @@ int load_tasks(const char *filename) {
 }
 
 /* Standart Kuyruk Ekleme (FIFO) */
-void enqueue(QueueNode **head, Task *task) {
-    QueueNode *new_node = (QueueNode *)malloc(sizeof(QueueNode));
-    if (!new_node) {
+void enqueue(QueueNode **root, Task *task) {
+    QueueNode *temp = (QueueNode *)malloc(sizeof(QueueNode));
+    if (!temp) {
         printf("Hata: Yetersiz bellek!\n");
         exit(1);
     }
-    new_node->task = task;
-    new_node->next = NULL;
+    temp->task = task;
+    temp->next = NULL;
 
-    if (*head == NULL) {
-        *head = new_node;
+    if (*root == NULL) {
+        *root = temp;
         return;
     }
 
-    QueueNode *temp = *head;
+    QueueNode *temp = *root;
     while (temp->next != NULL) {
         temp = temp->next;
     }
-    temp->next = new_node;
+    temp->next = temp;
 }
 
 /* Sade SJF Sirali Ekleme */
-void insert_sorted_sjf(QueueNode **head, Task *task) {
-    QueueNode *new_node = (QueueNode *)malloc(sizeof(QueueNode));
-    if (!new_node) {
+void insert_sorted_sjf(QueueNode **root, Task *task) {
+    QueueNode *temp = (QueueNode *)malloc(sizeof(QueueNode));
+    if (!temp) {
         printf("Hata: Yetersiz bellek!\n");
         exit(1);
     }
-    new_node->task = task;
-    new_node->next = NULL;
+    temp->task = task;
+    temp->next = NULL;
 
-    if (*head == NULL) {
-        *head = new_node;
+    if (*root == NULL) {
+        *root = temp;
         return;
     }
 
     /* Basa ekleme kurali: Once kisa sure, esitlikte erken gelis, esitlikte kucuk ID */
     int basa_ekle = 0;
-    if (task->duration < (*head)->task->duration)
+    if (task->duration < (*root)->task->duration)
         basa_ekle = 1;
-    else if (task->duration == (*head)->task->duration && task->arrival_time < (*head)->task->arrival_time)
+    else if (task->duration == (*root)->task->duration && task->arrival_time < (*root)->task->arrival_time)
         basa_ekle = 1;
-    else if (task->duration == (*head)->task->duration && task->arrival_time == (*head)->task->arrival_time && task->id < (*head)->task->id)
+    else if (task->duration == (*root)->task->duration && task->arrival_time == (*root)->task->arrival_time && task->id < (*root)->task->id)
         basa_ekle = 1;
 
     if (basa_ekle) {
-        new_node->next = *head;
-        *head = new_node;
+        temp->next = *root;
+        *root = temp;
         return;
     }
 
     /* Araya veya sona ekleme */
-    QueueNode *temp = *head;
+    QueueNode *temp = *root;
     while (temp->next != NULL) {
         int araya_ekle = 0;
         Task *sonraki = temp->next->task;
@@ -250,48 +250,48 @@ void insert_sorted_sjf(QueueNode **head, Task *task) {
             araya_ekle = 1;
 
         if (araya_ekle) {
-            new_node->next = temp->next;
-            temp->next = new_node;
+            temp->next = temp->next;
+            temp->next = temp;
             return;
         }
         temp = temp->next;
     }
 
-    temp->next = new_node;
+    temp->next = temp;
 }
 
 /* Sade Priority Sirali Ekleme */
-void insert_sorted_priority(QueueNode **head, Task *task) {
-    QueueNode *new_node = (QueueNode *)malloc(sizeof(QueueNode));
-    if (!new_node) {
+void insert_sorted_priority(QueueNode **root, Task *task) {
+    QueueNode *temp = (QueueNode *)malloc(sizeof(QueueNode));
+    if (!temp) {
         printf("Hata: Yetersiz bellek!\n");
         exit(1);
     }
-    new_node->task = task;
-    new_node->next = NULL;
+    temp->task = task;
+    temp->next = NULL;
 
-    if (*head == NULL) {
-        *head = new_node;
+    if (*root == NULL) {
+        *root = temp;
         return;
     }
 
     /* Basa ekleme kurali: Once kucuk oncelik sayisi (yuksek oncelik), esitlikte gelis, sonra ID */
     int basa_ekle = 0;
-    if (task->priority < (*head)->task->priority)
+    if (task->priority < (*root)->task->priority)
         basa_ekle = 1;
-    else if (task->priority == (*head)->task->priority && task->arrival_time < (*head)->task->arrival_time)
+    else if (task->priority == (*root)->task->priority && task->arrival_time < (*root)->task->arrival_time)
         basa_ekle = 1;
-    else if (task->priority == (*head)->task->priority && task->arrival_time == (*head)->task->arrival_time && task->id < (*head)->task->id)
+    else if (task->priority == (*root)->task->priority && task->arrival_time == (*root)->task->arrival_time && task->id < (*root)->task->id)
         basa_ekle = 1;
 
     if (basa_ekle) {
-        new_node->next = *head;
-        *head = new_node;
+        temp->next = *root;
+        *root = temp;
         return;
     }
 
     /* Araya veya sona ekleme */
-    QueueNode *temp = *head;
+    QueueNode *temp = *root;
     while (temp->next != NULL) {
         int araya_ekle = 0;
         Task *sonraki = temp->next->task;
@@ -304,22 +304,22 @@ void insert_sorted_priority(QueueNode **head, Task *task) {
             araya_ekle = 1;
 
         if (araya_ekle) {
-            new_node->next = temp->next;
-            temp->next = new_node;
+            temp->next = temp->next;
+            temp->next = temp;
             return;
         }
         temp = temp->next;
     }
 
-    temp->next = new_node;
+    temp->next = temp;
 }
 
-Task *dequeue(QueueNode **head) {
-    if (head == NULL || *head == NULL) return NULL;
+Task *dequeue(QueueNode **root) {
+    if (root == NULL || *root == NULL) return NULL;
 
-    QueueNode *temp = *head;
+    QueueNode *temp = *root;
     Task *task = temp->task;
-    *head = (*head)->next;
+    *root = (*root)->next;
     free(temp);
     return task;
 }
@@ -362,30 +362,30 @@ void admit_arrivals(void) {
 }
 
 /* Ozel Algoritma: Konum Duyarli SJF */
-Task *dequeue_best_for_tech(QueueNode **head, const Technician *tech) {
-    QueueNode *current, *previous = NULL, *best = NULL, *best_previous = NULL;
+Task *dequeue_best_for_tech(QueueNode **root, const Technician *tech) {
+    QueueNode *temp, *previous = NULL, *best = NULL, *best_previous = NULL;
     int best_penalty = INT_MAX_VAL;
 
-    if (head == NULL || *head == NULL) return NULL;
+    if (root == NULL || *root == NULL) return NULL;
 
-    for (current = *head; current != NULL; previous = current, current = current->next) {
-        int penalty = current->task->remaining_time;
-        if (needs_transition(tech, current->task)) {
+    for (temp = *root; temp != NULL; previous = temp, temp = temp->next) {
+        int penalty = temp->task->remaining_time;
+        if (needs_transition(tech, temp->task)) {
             penalty += g_location_switch_cost;
         }
 
         if (best == NULL || penalty < best_penalty ||
             (penalty == best_penalty &&
-             (current->task->arrival_time < best->task->arrival_time ||
-              (current->task->arrival_time == best->task->arrival_time &&
-               current->task->id < best->task->id)))) {
-            best = current;
+             (temp->task->arrival_time < best->task->arrival_time ||
+              (temp->task->arrival_time == best->task->arrival_time &&
+               temp->task->id < best->task->id)))) {
+            best = temp;
             best_previous = previous;
             best_penalty = penalty;
         }
     }
 
-    if (best_previous == NULL) *head = best->next;
+    if (best_previous == NULL) *root = best->next;
     else best_previous->next = best->next;
 
     Task *task = best->task;
